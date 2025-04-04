@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mapa Interativo de Vagas</title>
+  <link rel="stylesheet" href="styles/style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Div para o mapa -->
+    <div class="mapa">
+      <!-- Substitua a imagem estática pelo SVG -->
+      <object id="mapa-interativo" data="assets/1subsvg.svg" type="image/svg+xml"></object>
+    </div>
+
+    <!-- Div para a tabela -->
+    <div class="tabela-lotes">
+      
+      <table id="tabela-lotes">
+        <thead>
+          <tr>
+            <th>Lote</th>
+            <th>Vaga 1</th>
+            <th>Vaga 2</th>
+            <th>Vaga 3</th>
+            <th>Vaga 4</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- As linhas serão adicionadas aqui pelo script -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <script src="scripts/script.js"></script>
+</body>
+</html>

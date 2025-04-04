@@ -1,0 +1,79 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  height: 100vh; /* Garante que o conteúdo ocupe toda a altura da janela */
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  display: flex; /* Coloca os elementos lado a lado */
+  flex-direction: row;
+  flex: 1; /* Faz o container ocupar o espaço restante */
+}
+
+.mapa {
+  flex: 2; /* A imagem ocupa 2 partes do espaço */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #ffffff;
+  overflow: auto; /* Permite rolagem se o SVG for maior que o contêiner */
+  height: 100%; /* Garante que o contêiner ocupe toda a altura disponível */
+  width: 100%; /* Garante que o contêiner ocupe toda a largura disponível */
+  position: relative; /* Mantém o contexto de posicionamento para elementos filhos */
+}
+
+.mapa img,
+.mapa object,
+#mapa-interativo {
+  position: fixed; /* Fixa o elemento em relação à janela */
+  top: 0; /* Sempre no topo da janela */
+  left: 0; /* Sempre na esquerda da janela */
+  width: auto; /* Ajusta a largura automaticamente */
+  height: auto; /* Ajusta a altura automaticamente */
+  max-width: 100%; /* Limita a largura ao tamanho da janela */
+  max-height: 100%; /* Limita a altura ao tamanho da janela */
+  z-index: 1000; /* Garante que o elemento fique acima de outros */
+}
+
+.tabela-lotes {
+  flex: 1; /* A tabela ocupa 1 parte do espaço */
+  overflow-y: auto; /* Adiciona rolagem vertical se necessário */
+  background-color: #ffffff;
+  border-left: 1px solid #ccc;
+  padding: 20px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+tr:hover {
+  background-color: yellow;
+  cursor: pointer;
+}
+
+.highlight {
+  background-color: yellow; /* Destaque para linhas da tabela */
+  fill: yellow ; /* Destaque para elementos SVG */
+  transition: all 0.3s ease;
+}
+
+#mapa-interativo #402M:hover {
+  fill: rgb(47, 0, 255) ;
+  transition: fill 0.3s ease;
+}
