@@ -3,7 +3,7 @@ let loteMapeamento = {}; // Inicializar o objeto vazio
 function carregarCSVAutomaticamente() {
   console.log('Iniciando carregamento do CSV automaticamente...'); // Debug log
 
-  fetch('assets/tabelavagas.csv') // Caminho do arquivo CSV
+  fetch('src/assets/tabelavagas.csv') // Caminho do arquivo CSV
     .then(response => {
       if (!response.ok) {
         throw new Error(`Erro ao carregar o CSV: ${response.status}`);
