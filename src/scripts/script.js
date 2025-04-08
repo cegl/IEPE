@@ -1,58 +1,36 @@
 let loteMapeamento = {}; // Inicializar o objeto vazio
 
 function carregarCSVAutomaticamente() {
-  console.log('Iniciando carregamento do CSV automaticamente...'); // Debug log
+  console.log("Verificando se há uma tabela salva no cache...");
 
-  fetch('src/assets/tabelavagas.csv') // Caminho do arquivo CSV
-    .then(response => {
+  // Tentar carregar a tabela do cache
+  const tabelaSalva = localStorage.getItem("tabelaLotes");
+  if (tabelaSalva) {
+    console.log("Tabela encontrada no cache, carregando...");
+    const dados = JSON.parse(tabelaSalva);
+    preencherTabela(dados); // Preencher a tabela com os dados do cache
+    return; // Não carregar o CSV se os dados do cache forem encontrados
+  }
+
+  console.log("Nenhuma tabela no cache, carregando CSV...");
+  fetch("src/assets/tabelavagas.csv")
+    .then((response) => {
       if (!response.ok) {
         throw new Error(`Erro ao carregar o CSV: ${response.status}`);
       }
       return response.text();
     })
-    .then(csvData => {
-      console.log("CSV Data:", csvData); // VERIFY CSV LOAD
+    .then((csvData) => {
       const linhas = csvData.split("\n").map((linha) => linha.trim());
-      console.log("Linhas:", linhas); // INSPECT linhas
-      const tabelaBody = document.querySelector("tbody");
-      tabelaBody.innerHTML = "";
-
-      // Limpar o mapeamento antes de preenchê-lo
-      loteMapeamento = {};
-
-      linhas.forEach((linha, index) => {
-        if (index === 0 || linha === "") return; // Ignorar cabeçalho e linhas vazias
-
-        console.log("Linha:", linha, "Index:", index); // Check loop execution
-
-        const colunas = linha.split(";");
-        console.log("Colunas:", colunas); // Inspect colunas
-        const [lote, vaga1, vaga2, vaga3, vaga4] = colunas;
-
-        // Preencher o mapeamento do lote
-        loteMapeamento[lote] = [vaga1, vaga2, vaga3, vaga4].filter(vaga => vaga && vaga !== '-'); // Remover valores vazios
-
-        console.log("LoteMapeamento (inside loop):", loteMapeamento); // Check loteMapeamento inside the loop
-
-        // Criar a linha da tabela
-        const row = document.createElement("tr");
-        row.dataset.lote = lote; // Usar data-lote para vincular ao SVG
-
-        row.innerHTML = `
-          <td>${lote}</td>
-          <td>${vaga1}</td>
-          <td>${vaga2}</td>
-          <td>${vaga3}</td>
-          <td>${vaga4 || "-"}</td>
-        `;
-        tabelaBody.appendChild(row);
-      });
-
-      console.log('LoteMapeamento gerado:', loteMapeamento); // Log para depuração
-      adicionarInteratividade(); // Adicionar interatividade após carregar a tabela
+      preencherTabela(
+        linhas
+          .slice(1) // Ignorar o cabeçalho
+          .filter((linha) => linha !== "") // Ignorar linhas vazias
+          .map((linha) => linha.split(";"))
+      );
     })
-    .catch(error => {
-      console.error('Erro ao carregar o CSV:', error);
+    .catch((error) => {
+      console.error("Erro ao carregar o CSV:", error);
       document.querySelector("tbody").innerHTML = `
         <tr>
           <td colspan="5">Erro ao carregar dados: ${error.message}</td>
@@ -61,9 +39,72 @@ function carregarCSVAutomaticamente() {
     });
 }
 
+function preencherTabela(dados) {
+  const tabelaBody = document.querySelector("tbody");
+  tabelaBody.innerHTML = ""; // Limpar a tabela
+
+  dados.forEach((linha) => {
+    const row = document.createElement("tr");
+    row.setAttribute("draggable", "true");
+    row.innerHTML = linha.map((coluna) => `<td>${coluna}</td>`).join("");
+    tabelaBody.appendChild(row);
+  });
+
+  adicionarEventosDragAndDrop(); // Reaplicar os eventos de drag-and-drop
+}
+
+function adicionarEventosDragAndDrop() {
+  const tabelaBody = document.querySelector("tbody");
+  let draggedRow = null;
+
+  tabelaBody.addEventListener("dragstart", (e) => {
+    if (e.target.tagName === "TR") {
+      draggedRow = e.target;
+      e.target.classList.add("dragging");
+    }
+  });
+
+  tabelaBody.addEventListener("dragend", (e) => {
+    if (draggedRow) {
+      draggedRow.classList.remove("dragging");
+      draggedRow = null;
+    }
+  });
+
+  tabelaBody.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    const afterElement = getDragAfterElement(tabelaBody, e.clientY);
+    if (afterElement == null) {
+      tabelaBody.appendChild(draggedRow);
+    } else {
+      tabelaBody.insertBefore(draggedRow, afterElement);
+    }
+  });
+
+  function getDragAfterElement(container, y) {
+    const rows = [...container.querySelectorAll("tr:not(.dragging)")];
+
+    return rows.reduce(
+      (closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+          return { offset: offset, element: child };
+        } else {
+          return closest;
+        }
+      },
+      { offset: Number.NEGATIVE_INFINITY }
+    ).element;
+  }
+}
+
 function adicionarInteratividade() {
   const tabelaBody = document.querySelector("tbody");
   const svgObject = document.getElementById("mapa-interativo");
+
+  // Adicionar eventos de arrastar e soltar
+  adicionarEventosDragAndDrop();
 
   svgObject.addEventListener("load", () => {
     const svgDoc = svgObject.contentDocument;
@@ -73,7 +114,6 @@ function adicionarInteratividade() {
       const row = event.target.closest("tr");
       if (row) {
         const lote = row.dataset.lote;
-        console.log('Lote to highlight:', lote); // Debug
         highlightVagas(svgDoc, lote); // Destacar os vetores relacionados
         row.classList.add("highlight"); // Destacar a linha da tabela
       }
@@ -91,24 +131,11 @@ function adicionarInteratividade() {
     const elementosSVG = svgDoc.querySelectorAll("[id]");
     elementosSVG.forEach(elemento => {
       const id = elemento.id;
-      console.log('Vector ID:', id); // Debug
 
-      // Verificar se o ID corresponde ao formato esperado (1 a 3 números seguidos de uma letra)
-      // E se o elemento é do tipo relevante (path, rect, circle, polygon, etc.)
       if (/^\d{1,3}[A-Za-z]$/.test(id) && ["path", "rect", "circle", "polygon"].includes(elemento.tagName)) {
         elemento.addEventListener("mouseover", () => {
-          console.log(`Mouseover no vetor com ID: ${id}`); // Log do ID do vetor
-
-          const lote = encontrarLoteDoVetor(id); // Encontrar o lote do vetor
-          console.log('Lote found for vector:', id, lote); // Debug
-          if (lote) {
-            console.log(`O vetor com ID: ${id} pertence ao lote: ${lote}`); // Log do lote correspondente
-          } else {
-            console.log(`Nenhum lote encontrado para o vetor com ID: ${id}`); // Log caso nenhum lote seja encontrado
-          }
-
+          const lote = encontrarLoteDoVetor(id);
           const linhaCorrespondente = encontrarLinhaDaTabela(id);
-          console.log('Table row found for ID:', id, linhaCorrespondente); // Debug
           if (linhaCorrespondente) {
             linhaCorrespondente.classList.add("highlight"); // Destacar a linha da tabela
           }
@@ -129,8 +156,6 @@ function adicionarInteratividade() {
     });
   });
 }
-
-
 
 function highlightVagas(svgDoc, lote) {
   const idsDoLote = loteMapeamento[lote];
@@ -203,6 +228,55 @@ function encontrarLinhaDaTabela(idVaga) {
   return null;
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  carregarCSVAutomaticamente(); // Carregar o CSV automaticamente ao abrir a página
+document.getElementById("baixar-tabela").addEventListener("click", () => {
+  const tabelaBody = document.querySelector("tbody");
+  const linhas = Array.from(tabelaBody.querySelectorAll("tr")).map((row) => {
+    return Array.from(row.querySelectorAll("td")).map((td) => td.textContent.trim());
+  });
+
+  const csvContent = linhas.map((linha) => linha.join(";")).join("\n");
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "tabela-lotes.csv";
+  link.click();
 });
+
+document.getElementById("salvar-tabela").addEventListener("click", () => {
+  const tabelaBody = document.querySelector("tbody");
+  const linhas = Array.from(tabelaBody.querySelectorAll("tr")).map((row) => {
+    return Array.from(row.querySelectorAll("td")).map((td) => td.textContent.trim());
+  });
+
+  localStorage.setItem("tabelaLotes", JSON.stringify(linhas)); // Salvar no cache
+  alert("Tabela salva no cache do navegador!");
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const tabelaLotes = document.querySelector("#tabela-lotes tbody");
+
+  // Função para carregar o CSV
+  carregarCSVAutomaticamente(); // Carregar o CSV automaticamente ao abrir a página
+
+  // Função para adicionar eventos de arrastar e soltar
+  adicionarEventosDragAndDrop();
+  
+  const svgObject = document.getElementById("mapa-interativo");
+
+  svgObject.addEventListener("load", () => {
+    const svgDoc = svgObject.contentDocument;
+    const svgElement = svgDoc.documentElement;
+
+    let scale = 1; // Escala inicial
+
+    svgElement.addEventListener("wheel", (event) => {
+      event.preventDefault();
+      const zoomFactor = 0.1;
+      scale += event.deltaY < 0 ? zoomFactor : -zoomFactor;
+      scale = Math.min(Math.max(scale, 0.5), 3); // Limitar o zoom entre 0.5x e 3x
+      svgElement.style.transform = `scale(${scale})`;
+      svgElement.style.transformOrigin = "center center"; // Centralizar o zoom
+    });
+  });
+});
+
