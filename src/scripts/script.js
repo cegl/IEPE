@@ -46,11 +46,17 @@ function preencherTabela(dados) {
   dados.forEach((linha) => {
     const row = document.createElement("tr");
     row.setAttribute("draggable", "true");
+    // Adicionar data-lote usando a primeira coluna como identificador do lote
+    row.dataset.lote = linha[0];
     row.innerHTML = linha.map((coluna) => `<td>${coluna}</td>`).join("");
     tabelaBody.appendChild(row);
+
+    // Preencher o loteMapeamento com as vagas do lote
+    loteMapeamento[linha[0]] = linha.slice(1).filter(vaga => vaga && vaga !== '-');
   });
 
-  adicionarEventosDragAndDrop(); // Reaplicar os eventos de drag-and-drop
+  adicionarEventosDragAndDrop();
+  adicionarInteratividade();
 }
 
 function adicionarEventosDragAndDrop() {
@@ -103,8 +109,6 @@ function adicionarInteratividade() {
   const tabelaBody = document.querySelector("tbody");
   const svgObject = document.getElementById("mapa-interativo");
 
-  // Adicionar eventos de arrastar e soltar
-  adicionarEventosDragAndDrop();
 
   svgObject.addEventListener("load", () => {
     const svgDoc = svgObject.contentDocument;
@@ -125,6 +129,11 @@ function adicionarInteratividade() {
         removeHighlight(svgDoc); // Remover destaque dos vetores relacionados
         row.classList.remove("highlight"); // Remover destaque da linha da tabela
       }
+
+      
+    // Adicionar eventos de arrastar e soltar
+    adicionarEventosDragAndDrop();
+
     });
 
     // Comunicação do SVG para a tabela
