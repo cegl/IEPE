@@ -35,7 +35,7 @@ body {
   height: auto; /* Ajusta a altura automaticamente */
   max-width: 100%; /* Limita a largura ao tamanho da janela */
   max-height: 100%; /* Limita a altura ao tamanho da janela */
-  z-index: 1000; /* Garante que o elemento fique acima de outros */
+  /* z-index: 1000; /* Garante que o elemento fique acima de outros */
 }
 
 .tabela-lotes {

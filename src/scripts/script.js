@@ -1,18 +1,18 @@
 let loteMapeamento = {}; // Inicializar o objeto vazio
 
 function carregarCSVAutomaticamente() {
-  console.log("Verificando se há uma tabela salva no cache...");
+  //console.log("Verificando se há uma tabela salva no cache...");
 
   // Tentar carregar a tabela do cache
   const tabelaSalva = localStorage.getItem("tabelaLotes");
   if (tabelaSalva) {
-    console.log("Tabela encontrada no cache, carregando...");
+    //console.log("Tabela encontrada no cache, carregando...");
     const dados = JSON.parse(tabelaSalva);
     preencherTabela(dados); // Preencher a tabela com os dados do cache
     return; // Não carregar o CSV se os dados do cache forem encontrados
   }
 
-  console.log("Nenhuma tabela no cache, carregando CSV...");
+  //console.log("Nenhuma tabela no cache, carregando CSV...");
   fetch("src/assets/tabelavagas.csv")
     .then((response) => {
       if (!response.ok) {
@@ -30,7 +30,7 @@ function carregarCSVAutomaticamente() {
       );
     })
     .catch((error) => {
-      console.error("Erro ao carregar o CSV:", error);
+      //console.error("Erro ao carregar o CSV:", error);
       document.querySelector("tbody").innerHTML = `
         <tr>
           <td colspan="5">Erro ao carregar dados: ${error.message}</td>
@@ -56,7 +56,7 @@ function preencherTabela(dados) {
   });
 
   adicionarEventosDragAndDrop();
-  adicionarInteratividade();
+  //adicionarInteratividade();
 }
 
 function adicionarEventosDragAndDrop() {
@@ -132,7 +132,7 @@ function adicionarInteratividade() {
 
       
     // Adicionar eventos de arrastar e soltar
-    adicionarEventosDragAndDrop();
+    //adicionarEventosDragAndDrop();
 
     });
 
@@ -168,7 +168,7 @@ function adicionarInteratividade() {
 
 function highlightVagas(svgDoc, lote) {
   const idsDoLote = loteMapeamento[lote];
-  console.log('IDs for lote:', lote, idsDoLote);
+  //console.log('IDs for lote:', lote, idsDoLote);
   if (!idsDoLote || !idsDoLote.length) return;
 
   // A cor de destaque com 50% de transparência
@@ -189,10 +189,10 @@ function highlightVagas(svgDoc, lote) {
 
         // Destacar aplicando a cor RGBA via estilo inline com !important
         elemento.style.setProperty("fill", highlightColor, "important");
-        console.log(`Applied semi-transparent yellow highlight to ${id}`);
+        //console.log(`Applied semi-transparent yellow highlight to ${id}`);
 
       } else {
-        console.log(`Element with ID ${id} not found in SVG doc.`);
+        //console.log(`Element with ID ${id} not found in SVG doc.`);
       }
     });
 }
@@ -215,14 +215,14 @@ function removeHighlight(svgDoc) {
 }
 
 function encontrarLoteDoVetor(idVetor) {
-  console.log(`Procurando o lote para o vetor com ID: ${idVetor}`); // Log para depuração
+  //console.log(`Procurando o lote para o vetor com ID: ${idVetor}`); // Log para depuração
   for (const [lote, vetores] of Object.entries(loteMapeamento)) {
     if (vetores.includes(idVetor)) {
       console.log(`Lote encontrado: ${lote} para o vetor com ID: ${idVetor}`); // Log do lote encontrado
       return lote;
     }
   }
-  console.log(`Nenhum lote encontrado para o vetor com ID: ${idVetor}`); // Log caso nenhum lote seja encontrado
+  //console.log(`Nenhum lote encontrado para o vetor com ID: ${idVetor}`); // Log caso nenhum lote seja encontrado
   return null;
 }
 
@@ -266,7 +266,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Função para carregar o CSV
   carregarCSVAutomaticamente(); // Carregar o CSV automaticamente ao abrir a página
-
+  adicionarInteratividade();
   // Função para adicionar eventos de arrastar e soltar
   adicionarEventosDragAndDrop();
   
